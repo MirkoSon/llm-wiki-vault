@@ -113,6 +113,10 @@ This architecture synthesizes ideas from the following sources:
 
 The synthesis — bridge layer, dual-environment strategy, subfolder-as-origin convention, and the overall integrated architecture — was developed iteratively with Claude (Anthropic) as the design collaborator.
 
+## License
+
+This work is licensed under the MIT License. You are free to use, modify, distribute, and build upon this vault architecture for any purpose, commercial or non-commercial, provided you include a copy of this license and attribution to the original sources. See LICENSE file for details.
+
 ---
 
-*For the full design rationale, see `outputs/LLM-WIKI-ARCHITECTURE.md`. For agent operational instructions, see `AGENTS.md`.*
+*For agent operational instructions, see `AGENTS.md`. For intent boundaries, see `IDEA.md`.*
