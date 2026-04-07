@@ -1,0 +1,9 @@
+# Force LF line endings for shell scripts regardless of OS
+tools/wikictl     text eol=lf
+tools/lint.sh     text eol=lf
+
+# Windows batch files should use CRLF
+tools/*.bat       text eol=crlf
+
+# Everything else: let git decide
+*                 text=auto
