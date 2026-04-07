@@ -1,0 +1,265 @@
+#!/bin/bash
+# wikictl — CLI engine stub for wiki operations
+# Subcommands: init, status, ingest, query, lint, log, paths
+# This is a starter template. Flesh out as patterns emerge.
+# Usage: ./wikictl <subcommand> [args]
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+VAULT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+usage() {
+  cat <<EOF
+wikictl — Wiki control CLI
+
+Usage: wikictl <subcommand> [args]
+
+Subcommands:
+  init      Initialize or reset the wiki (creates directories, placeholder files)
+  status    Show wiki status (sources ingested, pages created, health check)
+  ingest    Ingest a source from raw/untracked/ (full 4-stage ingest)
+  bridge    Normalize pre-processed sources from raw/bridge/ (lightweight pass)
+  query     Query the wiki (search pages, list entities, etc.)
+  lint      Run structural and content health checks
+  log       Manage the activity log (show, search, tail)
+  paths     Print key wiki paths
+
+Examples:
+  wikictl status
+  wikictl ingest path/to/source.pdf
+  wikictl bridge                        # process all files in raw/bridge/
+  wikictl bridge path/to/mindos-page.md # normalize a specific file
+  wikictl query "concept name"
+  wikictl lint --verbose
+  wikictl log tail 20
+  wikictl paths
+
+Source routing guide:
+  raw article, PDF, URL     → raw/untracked/  → wikictl ingest
+  MindOS, Obsidian, Notion  → raw/bridge/     → wikictl bridge
+  anything pre-structured   → raw/bridge/     → wikictl bridge
+
+For more information, see: ../AGENTS.md
+
+EOF
+}
+
+cmd_init() {
+  echo "init subcommand not yet implemented."
+  echo "TODO: Create directories, placeholder files, git init if needed."
+  exit 1
+}
+
+cmd_status() {
+  echo "wikictl status — Wiki inventory"
+  echo ""
+  echo "Vault: $VAULT_ROOT"
+  echo ""
+
+  SOURCES_UNTRACKED=$(find "$VAULT_ROOT/raw/untracked" -type f 2>/dev/null | wc -l)
+  SOURCES_INGESTED=$(find "$VAULT_ROOT/raw/ingested" -type f 2>/dev/null | wc -l)
+  WIKI_PAGES=$(find "$VAULT_ROOT/wiki" -name "*.md" -type f | wc -l)
+
+  echo "Sources:"
+  echo "  Untracked (awaiting ingest): $SOURCES_UNTRACKED"
+  echo "  Ingested: $SOURCES_INGESTED"
+  echo ""
+  echo "Wiki Pages: $WIKI_PAGES"
+  echo ""
+  echo "Run 'wikictl lint' for health check."
+}
+
+cmd_ingest() {
+  if [[ -z "$1" ]]; then
+    echo "ingest subcommand not yet implemented."
+    echo "TODO: Read source, extract metadata, create wiki pages, update manifest."
+    echo "See AGENTS.md > Ingest Workflow for the full 4-stage process."
+    exit 1
+  fi
+  echo "ingest subcommand: would ingest $1"
+  echo "TODO: Implement full ingest workflow (see AGENTS.md)"
+  exit 1
+}
+
+cmd_bridge() {
+  BRIDGE_DIR="$VAULT_ROOT/raw/bridge"
+
+  if [[ ! -d "$BRIDGE_DIR" ]]; then
+    echo "Bridge directory not found: $BRIDGE_DIR"
+    exit 1
+  fi
+
+  # Count files awaiting normalization (excluding .gitkeep)
+  BRIDGE_COUNT=$(find "$BRIDGE_DIR" -type f -not -name ".gitkeep" | wc -l)
+
+  if [[ $BRIDGE_COUNT -eq 0 ]]; then
+    echo "No files in raw/bridge/ to normalize."
+    echo ""
+    echo "Drop pre-processed markdown files into a source subfolder:"
+    echo "  raw/bridge/mindos/      ← MindOS-synced pages"
+    echo "  raw/bridge/obsidian/    ← Obsidian vault exports"
+    echo "  raw/bridge/notion/      ← Notion markdown exports"
+    echo "  raw/bridge/chatgpt/     ← AI chat exports"
+    echo "  raw/bridge/colleague/   ← collaborator notes"
+    echo "  raw/bridge/self/        ← your own old notes"
+    echo "  raw/bridge/unknown/     ← unclear origin"
+    echo ""
+    echo "Add new subfolders freely for new source systems."
+    exit 0
+  fi
+
+  echo "wikictl bridge — Normalization pass"
+  echo ""
+
+  # List files grouped by origin subfolder (subfolder name = origin)
+  echo "Found $BRIDGE_COUNT file(s) in raw/bridge/ awaiting normalization:"
+  find "$BRIDGE_DIR" -mindepth 1 -maxdepth 1 -type d | sort | while read -r subdir; do
+    ORIGIN=$(basename "$subdir")
+    COUNT=$(find "$subdir" -type f -not -name ".gitkeep" | wc -l)
+    if [[ $COUNT -gt 0 ]]; then
+      echo ""
+      echo "  [$ORIGIN] ($COUNT file(s)):"
+      find "$subdir" -type f -not -name ".gitkeep" | while read -r file; do
+        echo "    - $(basename "$file")"
+      done
+    fi
+  done
+
+  echo ""
+
+  if [[ -n "$1" ]]; then
+    # Normalize a specific file — infer origin from parent directory name
+    TARGET="$1"
+    ORIGIN=$(basename "$(dirname "$TARGET")")
+    echo "Targeting: $TARGET"
+    echo "Inferred origin: $ORIGIN"
+    echo ""
+    echo "TODO: Run normalization pass on $TARGET with origin=$ORIGIN"
+    echo "See AGENTS.md > Bridge Workflow for the full normalization steps."
+  else
+    echo "TODO: Run normalization pass on all $BRIDGE_COUNT file(s)"
+    echo ""
+    echo "Origin is auto-detected from each file's parent subfolder."
+    echo ""
+    echo "The agent should for each file:"
+    echo "  1. Read parent dir name → set origin in manifest (mindos/obsidian/etc.)"
+    echo "  2. Classify file type (entity/concept/source/decision/sop/comparison)"
+    echo "  3. Add/complete frontmatter (confidence: medium, status: imported, origin, tags)"
+    echo "  4. Preserve content, convert wikilinks, add History entry"
+    echo "  5. File into correct wiki/ directory (merge if page already exists)"
+    echo "  6. Register in manifests/sources.csv with status: bridged, origin: <subfolder>"
+    echo "  7. Move to raw/ingested/, update wiki/index.md and wiki/log.md"
+  fi
+  exit 1
+}
+
+cmd_query() {
+  if [[ -z "$1" ]]; then
+    echo "query subcommand requires an argument."
+    echo "Usage: wikictl query <search-term>"
+    exit 1
+  fi
+  echo "query subcommand not yet implemented."
+  echo "TODO: Search wiki pages, list matching entities/concepts."
+  exit 1
+}
+
+cmd_lint() {
+  echo "Running lint checks..."
+  "$SCRIPT_DIR/lint.sh" "$@"
+}
+
+cmd_log() {
+  LOG_FILE="$VAULT_ROOT/wiki/log.md"
+  SUBCOMMAND="${1:-tail}"
+  ARG="${2:-15}"
+
+  if [[ ! -f "$LOG_FILE" ]]; then
+    echo "Log file not found: $LOG_FILE"
+    exit 1
+  fi
+
+  case "$SUBCOMMAND" in
+    tail)
+      tail -n "$ARG" "$LOG_FILE"
+      ;;
+    head)
+      head -n "$ARG" "$LOG_FILE"
+      ;;
+    grep)
+      if [[ -z "$ARG" ]]; then
+        echo "Usage: wikictl log grep <pattern>"
+        exit 1
+      fi
+      grep "$ARG" "$LOG_FILE" || true
+      ;;
+    *)
+      echo "Unknown log subcommand: $SUBCOMMAND"
+      echo "Use: wikictl log [tail|head|grep] [arg]"
+      exit 1
+      ;;
+  esac
+}
+
+cmd_paths() {
+  echo "Wiki paths:"
+  echo "  Vault root: $VAULT_ROOT"
+  echo "  IDEA: $VAULT_ROOT/IDEA.md"
+  echo "  Schema: $VAULT_ROOT/AGENTS.md"
+  echo "  Raw (untracked): $VAULT_ROOT/raw/untracked"
+  echo "  Raw (ingested): $VAULT_ROOT/raw/ingested"
+  echo "  Wiki: $VAULT_ROOT/wiki"
+  echo "  Index: $VAULT_ROOT/wiki/index.md"
+  echo "  Log: $VAULT_ROOT/wiki/log.md"
+  echo "  Context: $VAULT_ROOT/.brain/context.md"
+  echo "  Manifest: $VAULT_ROOT/manifests/sources.csv"
+}
+
+# ============================================================================
+# Main
+# ============================================================================
+
+if [[ $# -eq 0 ]]; then
+  usage
+  exit 0
+fi
+
+SUBCOMMAND="$1"
+shift
+
+case "$SUBCOMMAND" in
+  init)
+    cmd_init "$@"
+    ;;
+  status)
+    cmd_status "$@"
+    ;;
+  ingest)
+    cmd_ingest "$@"
+    ;;
+  bridge)
+    cmd_bridge "$@"
+    ;;
+  query)
+    cmd_query "$@"
+    ;;
+  lint)
+    cmd_lint "$@"
+    ;;
+  log)
+    cmd_log "$@"
+    ;;
+  paths)
+    cmd_paths "$@"
+    ;;
+  -h|--help|help)
+    usage
+    exit 0
+    ;;
+  *)
+    echo "Unknown subcommand: $SUBCOMMAND"
+    usage
+    exit 1
+    ;;
+esac

@@ -1,0 +1,23 @@
+source_id,filename,raw_path,status,origin,compiled_into,content_hash,ingested_date,notes
+# Columns:
+# source_id:    Unique identifier (slug format: my-source-name)
+# filename:     Original filename with extension
+# raw_path:     Path relative to vault root (e.g., raw/articles/my-article.md)
+# status:       untracked | bridged | ingested
+#               untracked = raw source awaiting full ingest (raw/untracked/)
+#               bridged   = pre-processed source normalized via bridge pass (raw/bridge/)
+#               ingested  = fully processed, moved to raw/ingested/
+# origin:       manual | mindos | obsidian | notion | roam | logseq | chatgpt | claude | colleague | self | unknown
+#               Describes where the file came from before entering this system
+# compiled_into: Comma-separated list of wiki pages created/updated from this source
+# content_hash: SHA256 hash of source file at time of ingest (for change/staleness detection)
+# ingested_date: YYYY-MM-DD when processed (blank if not yet processed)
+# notes:        Free text (date published, relevance, confidence notes, issues encountered)
+#
+# Status routing:
+#   raw article, PDF, URL      → raw/untracked/ → full ingest  → status: ingested
+#   MindOS, Obsidian, Notion   → raw/bridge/    → bridge pass  → status: bridged
+#
+# Example rows:
+# my-article-2024,article.pdf,raw/articles/article.pdf,ingested,manual,"wiki/sources/my-article-2024.md,wiki/concepts/llm-scaling.md",abc123def456,2026-04-07,"Published 2024-11; high confidence"
+# mindos-agents-page,agents.md,raw/bridge/agents.md,bridged,mindos,wiki/concepts/llm-agents.md,def456abc789,2026-04-07,"Imported from MindOS PC sync; confidence medium"
