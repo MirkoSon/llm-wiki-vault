@@ -37,7 +37,7 @@ log_info() {
 # ============================================================================
 echo "Checking wiki pages for YAML frontmatter..."
 while IFS= read -r file; do
-  if ! head -1 "$file" | grep -q "^---$"; then
+  if ! head -1 "$file" | tr -d '\r' | grep -q "^---$"; then
     log_error "Missing YAML frontmatter in: $file"
   else
     log_info "OK frontmatter: $file"
